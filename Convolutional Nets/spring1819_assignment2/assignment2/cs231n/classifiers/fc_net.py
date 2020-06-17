@@ -296,6 +296,12 @@ class FullyConnectedNet(object):
                 x, cache_norm = batchnorm_forward(x, gamma, beta, self.bn_params[i])
                 caches_norm.append(cache_norm)
                 
+            if self.normalization=='layernorm':
+                gamma = self.params['gamma'+str(i+1)]
+                beta = self.params['beta'+str(i+1)]
+                x, cache_norm = layernorm_forward(x, gamma, beta, self.bn_params[i])
+                caches_norm.append(cache_norm)            
+                
             x, cache_relu = relu_forward(x)
             caches_relu.append(cache_relu)
             
@@ -354,7 +360,13 @@ class FullyConnectedNet(object):
                 
                 grads['gamma'+str(i+1)] = dgamma
                 grads['beta'+str(i+1)] = dbeta
-            
+                
+                
+            if self.normalization=='layernorm':
+                dout, dgamma, dbeta = layernorm_backward(dout, caches_norm[i])
+                
+                grads['gamma'+str(i+1)] = dgamma
+                grads['beta'+str(i+1)] = dbeta           
                       
             dx, dw, db = affine_backward(dout, caches_affine[i])
             
